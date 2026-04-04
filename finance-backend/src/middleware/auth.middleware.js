@@ -2,8 +2,10 @@ const { sendError } = require('../utils/response');
 
 const mockAuth = (req, _res, next) => {
   const roleFromHeader = req.headers['x-user-role'];
+  const userIdFromHeader = req.headers['x-user-id'];
   req.user = {
     role: roleFromHeader || process.env.MOCK_USER_ROLE || 'admin',
+    id: userIdFromHeader || process.env.MOCK_USER_ID || null,
   };
   next();
 };

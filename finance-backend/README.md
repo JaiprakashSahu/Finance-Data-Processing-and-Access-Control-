@@ -34,3 +34,33 @@
   "error": null
 }
 ```
+
+## Financial Records Module
+
+### Record Fields
+- `userId` (required, linked to User)
+- `amount` (required, must be greater than 0)
+- `type` (required, `income` or `expense`)
+- `category` (required, flexible free-text for now)
+- `date` (required)
+- `notes` (optional)
+
+### Ownership Rules
+- Admin can access all records.
+- Analyst and Viewer are read-only and can access only their own records.
+- Ownership is enforced using `req.user.id` from mock authentication context.
+
+### Filtering
+- `GET /records` supports combined filters:
+  - `type`
+  - `category`
+  - `startDate`
+  - `endDate`
+  - `userId` (admin only)
+- Non-admin requests are always scoped to their own `userId` even if `userId` is passed in query.
+
+### Authentication Note
+- Authentication remains simulated (`mockAuth`) for assignment scope.
+- Use request headers to test role/ownership behavior:
+  - `x-user-role`
+  - `x-user-id`
