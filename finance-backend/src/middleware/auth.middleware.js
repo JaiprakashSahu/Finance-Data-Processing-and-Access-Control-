@@ -1,3 +1,5 @@
+const { sendError } = require('../utils/response');
+
 const mockAuth = (req, _res, next) => {
   const roleFromHeader = req.headers['x-user-role'];
   req.user = {
@@ -11,9 +13,12 @@ const authorize = (allowedRoles = []) => {
     const userRole = req.user && req.user.role;
 
     if (!userRole || !allowedRoles.includes(userRole)) {
-      return res.status(403).json({
-        message: 'Forbidden: insufficient permissions',
-      });
+      return sendError(
+        res,
+        403,
+        'Forbidden: insufficient permissions',
+        'Role is not authorized for this action'
+      );
     }
 
     next();

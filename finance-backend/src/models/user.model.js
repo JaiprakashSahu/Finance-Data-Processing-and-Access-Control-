@@ -1,4 +1,7 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
+
+const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
 
 const userSchema = new mongoose.Schema(
   {
@@ -13,10 +16,13 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       trim: true,
+      match: EMAIL_REGEX,
     },
     password: {
       type: String,
       required: true,
+      minlength: 8,
+      select: false,
     },
     role: {
       type: String,
@@ -33,5 +39,13 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+userSchema.pre('save', async function hashPassword() {
+  if (!this.isModified('password')) {
+    return;
+  }
+
+  this.password = await bcrypt.hash(this.password, 10);
+});
 
 module.exports = mongoose.model('User', userSchema);
