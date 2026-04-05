@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import RoleSelector from '../components/RoleSelector';
-import { api, getStoredRole, unwrapData } from '../services/api';
+import api from '../services/api';
+import { getStoredRole } from '../services/roleStorage';
+import { unwrapData } from '../services/response';
 
 const currency = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -34,9 +36,15 @@ export default function AssetsGoals() {
         setLoading(true);
         setError('');
 
+        const requestConfig = {
+          headers: {
+            'x-user-role': activeRole,
+          },
+        };
+
         const [summaryRes, categoryRes] = await Promise.all([
-          api.get('/dashboard/summary'),
-          api.get('/dashboard/category-wise'),
+          api.get('/api/dashboard/summary', requestConfig),
+          api.get('/api/dashboard/category-wise', requestConfig),
         ]);
 
         const summaryData = unwrapData(summaryRes) || {};

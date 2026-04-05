@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import Sidebar from '../components/Sidebar';
 import RoleSelector from '../components/RoleSelector';
-import { api, getStoredRole, unwrapData } from '../services/api';
+import api from '../services/api';
+import { getStoredRole } from '../services/roleStorage';
+import { unwrapData } from '../services/response';
 
 const currency = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -52,7 +54,11 @@ export default function IncomeExpenses() {
   useEffect(() => {
     const loadSummary = async () => {
       try {
-        const response = await api.get('/dashboard/summary');
+        const response = await api.get('/api/dashboard/summary', {
+          headers: {
+            'x-user-role': activeRole,
+          },
+        });
         const summary = unwrapData(response) || {};
         setNetWorth(Number(summary.netBalance) || 0);
       } catch {
@@ -90,7 +96,12 @@ export default function IncomeExpenses() {
           params.endDate = endDate;
         }
 
-        const response = await api.get('/records', { params });
+        const response = await api.get('/api/records', {
+          params,
+          headers: {
+            'x-user-role': activeRole,
+          },
+        });
         const payload = unwrapData(response);
         const nextRecords = Array.isArray(payload) ? payload : payload?.records || [];
         const nextPagination = Array.isArray(payload)

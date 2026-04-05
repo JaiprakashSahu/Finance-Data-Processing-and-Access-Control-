@@ -20,7 +20,7 @@ npm run build
 Create .env:
 
 ```env
-VITE_API_BASE_URL=http://localhost:3000
+VITE_API_URL=http://localhost:3000
 ```
 
 For complete project documentation, setup flow, API list, screenshots, and Postman collection, see the repository root README.md.

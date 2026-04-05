@@ -1,4 +1,4 @@
-import { getStoredRole, ROLE_OPTIONS, setStoredRole } from '../services/api';
+import { getStoredRole, ROLE_OPTIONS, setStoredRole } from '../services/roleStorage';
 
 const roleLabelMap = {
   admin: 'Admin',

@@ -4,7 +4,9 @@ import SummaryCards from '../components/SummaryCards';
 import ChartSection from '../components/ChartSection';
 import CategoryCards from '../components/CategoryCards';
 import RoleSelector from '../components/RoleSelector';
-import { api, getStoredRole, unwrapData } from '../services/api';
+import api from '../services/api';
+import { getStoredRole } from '../services/roleStorage';
+import { unwrapData } from '../services/response';
 
 const toNumber = (value) => {
   const parsed = Number(value);
@@ -32,10 +34,16 @@ export default function Dashboard() {
         setLoading(true);
         setError('');
 
+        const requestConfig = {
+          headers: {
+            'x-user-role': activeRole,
+          },
+        };
+
         const [summaryRes, trendRes, categoryRes] = await Promise.all([
-          api.get('/dashboard/summary'),
-          api.get('/dashboard/trends'),
-          api.get('/dashboard/category-wise'),
+          api.get('/api/dashboard/summary', requestConfig),
+          api.get('/api/dashboard/trends', requestConfig),
+          api.get('/api/dashboard/category-wise', requestConfig),
         ]);
 
         const summaryData = unwrapData(summaryRes) || {};
