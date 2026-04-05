@@ -18,6 +18,20 @@ export default function ChartSection({ trends }) {
   const maxIncome = Math.max(...trends.map((point) => point.income), 0);
   const maxExpense = Math.max(...trends.map((point) => point.expense), 0);
 
+  if (!Array.isArray(trends) || trends.length === 0) {
+    return (
+      <section className="min-w-0 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/60">
+        <div className="mb-2">
+          <p className="text-lg font-semibold text-slate-900">Income & Expenses</p>
+          <p className="text-sm text-slate-500">Monthly trend overview</p>
+        </div>
+        <div className="grid h-72 place-items-center rounded-2xl bg-slate-50 text-sm text-slate-600">
+          No data available for chart rendering.
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="min-w-0 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/60">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-4">

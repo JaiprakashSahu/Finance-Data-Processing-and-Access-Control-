@@ -5,20 +5,24 @@ import ChartSection from '../components/ChartSection';
 import CategoryCards from '../components/CategoryCards';
 import { api, unwrapData } from '../services/api';
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
 const toNumber = (value) => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const getCurrentMonthKey = () => {
+  const currentDate = new Date();
+  return `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
 };
 
 export default function Dashboard() {
   const [summary, setSummary] = useState({ totalIncome: 0, totalExpense: 0, netBalance: 0 });
   const [trends, setTrends] = useState([]);
   const [categoryWise, setCategoryWise] = useState({ expense: {} });
-  const [selectedMonth, setSelectedMonth] = useState(MONTHS[new Date().getMonth()]);
+  const [selectedMonth, setSelectedMonth] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const currentMonthKey = getCurrentMonthKey();
 
   useEffect(() => {
     const loadDashboard = async () => {
@@ -42,16 +46,30 @@ export default function Dashboard() {
           netBalance: toNumber(summaryData.netBalance),
         });
 
-        const safeTrendData = MONTHS.map((month) => {
-          const found = trendData.find((item) => item.month === month) || {};
-          return {
-            month,
-            income: toNumber(found.income),
-            expense: toNumber(found.expense),
-          };
-        });
+        const safeTrendData = (Array.isArray(trendData) ? trendData : [])
+          .map((item) => ({
+            month: String(item.month || '').trim(),
+            income: toNumber(item.income),
+            expense: toNumber(item.expense),
+          }))
+          .filter((item) => item.month);
 
         setTrends(safeTrendData);
+        setSelectedMonth((current) => {
+          if (safeTrendData.length === 0) {
+            return '';
+          }
+
+          if (current && safeTrendData.some((item) => item.month === current)) {
+            return current;
+          }
+
+          if (safeTrendData.some((item) => item.month === currentMonthKey)) {
+            return currentMonthKey;
+          }
+
+          return safeTrendData[safeTrendData.length - 1].month;
+        });
         setCategoryWise({ expense: categoryData.expense || {} });
       } catch (requestError) {
         setError(requestError?.response?.data?.error || 'Unable to load dashboard data');
@@ -63,9 +81,28 @@ export default function Dashboard() {
     loadDashboard();
   }, []);
 
+  const availableMonths = useMemo(() => trends.map((item) => item.month), [trends]);
+
   const selectedMonthData = useMemo(() => {
-    return trends.find((item) => item.month === selectedMonth) || { month: selectedMonth, income: 0, expense: 0 };
+    if (trends.length === 0) {
+      return { month: 'N/A', income: 0, expense: 0 };
+    }
+
+    return (
+      trends.find((item) => item.month === selectedMonth) || trends[trends.length - 1]
+    );
   }, [selectedMonth, trends]);
+
+  const hasDashboardData = useMemo(() => {
+    return (
+      trends.length > 0 ||
+      summary.totalIncome > 0 ||
+      summary.totalExpense > 0 ||
+      Object.keys(categoryWise.expense || {}).length > 0
+    );
+  }, [trends, summary.totalIncome, summary.totalExpense, categoryWise.expense]);
+
+  const hasIncomeCards = summary.totalIncome > 0 || summary.totalExpense > 0;
 
   if (loading) {
     return (
@@ -89,7 +126,7 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-slate-100">
       <Sidebar
-        months={MONTHS}
+        months={availableMonths}
         selectedMonth={selectedMonth}
         onMonthChange={setSelectedMonth}
         netWorth={summary.netBalance}
@@ -104,12 +141,21 @@ export default function Dashboard() {
             </div>
             <div className="rounded-xl bg-slate-900/30 px-4 py-2 text-right backdrop-blur">
               <p className="text-sm">Selected Month</p>
-              <p className="text-xl font-semibold">{selectedMonth}</p>
+              <p className="text-xl font-semibold">{selectedMonth || 'N/A'}</p>
             </div>
           </div>
         </header>
 
         <div className="space-y-6">
+          {!hasDashboardData ? (
+            <section className="rounded-2xl bg-white p-6 text-center shadow-sm ring-1 ring-slate-200/60">
+              <p className="text-lg font-semibold text-slate-900">No data available</p>
+              <p className="mt-2 text-sm text-slate-600">
+                No records are available for this dashboard yet. Seed demo data or add new records to view analytics.
+              </p>
+            </section>
+          ) : null}
+
           <SummaryCards summary={summary} selectedMonthData={selectedMonthData} />
 
           <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
@@ -127,31 +173,40 @@ export default function Dashboard() {
                 </p>
               </section>
 
-              <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200/60">
-                <p className="text-lg font-semibold text-slate-900">Income Sources</p>
-                <div className="mt-3 space-y-3 text-sm">
-                  <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
-                    <span className="text-slate-600">Primary income</span>
-                    <span className="font-semibold text-slate-900">
-                      {new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'USD',
-                        maximumFractionDigits: 0,
-                      }).format(summary.totalIncome)}
-                    </span>
+              {hasIncomeCards ? (
+                <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200/60">
+                  <p className="text-lg font-semibold text-slate-900">Income Sources</p>
+                  <div className="mt-3 space-y-3 text-sm">
+                    <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
+                      <span className="text-slate-600">Primary income</span>
+                      <span className="font-semibold text-slate-900">
+                        {new Intl.NumberFormat('en-US', {
+                          style: 'currency',
+                          currency: 'USD',
+                          maximumFractionDigits: 0,
+                        }).format(summary.totalIncome)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
+                      <span className="text-slate-600">Total expenses</span>
+                      <span className="font-semibold text-rose-500">
+                        {new Intl.NumberFormat('en-US', {
+                          style: 'currency',
+                          currency: 'USD',
+                          maximumFractionDigits: 0,
+                        }).format(summary.totalExpense)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2">
-                    <span className="text-slate-600">Total expenses</span>
-                    <span className="font-semibold text-rose-500">
-                      {new Intl.NumberFormat('en-US', {
-                        style: 'currency',
-                        currency: 'USD',
-                        maximumFractionDigits: 0,
-                      }).format(summary.totalExpense)}
-                    </span>
-                  </div>
-                </div>
-              </section>
+                </section>
+              ) : (
+                <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200/60">
+                  <p className="text-lg font-semibold text-slate-900">Income Sources</p>
+                  <p className="mt-2 text-sm text-slate-600">
+                    No income records available for this period yet.
+                  </p>
+                </section>
+              )}
             </aside>
           </div>
 

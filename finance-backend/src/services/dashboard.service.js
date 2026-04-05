@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Record = require('../models/record.model');
 const AppError = require('../utils/appError');
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const VALID_TYPES = ['income', 'expense'];
 
 const ensureObjectId = (value, fieldName) => {
   if (!mongoose.Types.ObjectId.isValid(value)) {
@@ -34,23 +34,87 @@ const getMatchFilter = (scopedUserId) => {
   };
 };
 
-const getSummaryService = async ({ userId }, authUser) => {
+const parseDate = (value, fieldName) => {
+  const parsedDate = new Date(value);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    throw new AppError('Validation failed', 400, `Invalid ${fieldName}`);
+  }
+
+  return parsedDate;
+};
+
+const buildDashboardMatch = (
+  { userId, startDate, endDate, type },
+  authUser,
+  { defaultType = null } = {}
+) => {
   const scopedUserId = getScopedUserId(userId, authUser);
   const match = getMatchFilter(scopedUserId);
 
-  const [incomeAgg, expenseAgg] = await Promise.all([
-    Record.aggregate([
-      { $match: { ...match, type: 'income' } },
-      { $group: { _id: null, total: { $sum: '$amount' } } },
-    ]),
-    Record.aggregate([
-      { $match: { ...match, type: 'expense' } },
-      { $group: { _id: null, total: { $sum: '$amount' } } },
-    ]),
+  if (startDate || endDate) {
+    const dateFilter = {};
+
+    if (startDate) {
+      dateFilter.$gte = parseDate(startDate, 'startDate');
+    }
+
+    if (endDate) {
+      dateFilter.$lte = parseDate(endDate, 'endDate');
+    }
+
+    if (dateFilter.$gte && dateFilter.$lte && dateFilter.$gte > dateFilter.$lte) {
+      throw new AppError(
+        'Validation failed',
+        400,
+        'startDate cannot be greater than endDate'
+      );
+    }
+
+    match.date = dateFilter;
+  }
+
+  const resolvedType = type || defaultType;
+
+  if (resolvedType) {
+    if (!VALID_TYPES.includes(resolvedType)) {
+      throw new AppError('Validation failed', 400, 'Invalid type filter');
+    }
+
+    match.type = resolvedType;
+  }
+
+  return {
+    match,
+    resolvedType,
+  };
+};
+
+const getSummaryService = async (query, authUser) => {
+  const { match } = buildDashboardMatch(query, authUser);
+
+  const totalsByType = await Record.aggregate([
+    { $match: match },
+    {
+      $group: {
+        _id: '$type',
+        total: { $sum: '$amount' },
+      },
+    },
   ]);
 
-  const totalIncome = incomeAgg[0]?.total || 0;
-  const totalExpense = expenseAgg[0]?.total || 0;
+  let totalIncome = 0;
+  let totalExpense = 0;
+
+  totalsByType.forEach((entry) => {
+    if (entry._id === 'income') {
+      totalIncome = entry.total;
+    }
+
+    if (entry._id === 'expense') {
+      totalExpense = entry.total;
+    }
+  });
 
   return {
     totalIncome,
@@ -59,35 +123,44 @@ const getSummaryService = async ({ userId }, authUser) => {
   };
 };
 
-const getTrendsService = async ({ userId }, authUser) => {
-  const scopedUserId = getScopedUserId(userId, authUser);
-  const match = getMatchFilter(scopedUserId);
+const getTrendsService = async (query, authUser) => {
+  const { match } = buildDashboardMatch(query, authUser);
 
   const trends = await Record.aggregate([
     { $match: match },
     {
       $group: {
         _id: {
+          year: { $year: '$date' },
           month: { $month: '$date' },
           type: '$type',
         },
         total: { $sum: '$amount' },
       },
     },
+    {
+      $sort: {
+        '_id.year': 1,
+        '_id.month': 1,
+      },
+    },
   ]);
 
   const trendMap = new Map();
 
-  MONTHS.forEach((month) => {
-    trendMap.set(month, { month, income: 0, expense: 0 });
-  });
-
   trends.forEach((entry) => {
-    const monthIndex = entry._id.month - 1;
-    const month = MONTHS[monthIndex];
+    const year = entry._id.year;
+    const monthNumber = entry._id.month;
+    const month = `${year}-${String(monthNumber).padStart(2, '0')}`;
 
-    if (!month) {
-      return;
+    if (!trendMap.has(month)) {
+      trendMap.set(month, {
+        month,
+        year,
+        monthNumber,
+        income: 0,
+        expense: 0,
+      });
     }
 
     const bucket = trendMap.get(month);
@@ -97,12 +170,14 @@ const getTrendsService = async ({ userId }, authUser) => {
   return Array.from(trendMap.values());
 };
 
-const getCategoryWiseService = async ({ userId }, authUser) => {
-  const scopedUserId = getScopedUserId(userId, authUser);
-  const match = getMatchFilter(scopedUserId);
+const getCategoryWiseService = async (query, authUser) => {
+  const { match, resolvedType } = buildDashboardMatch(query, authUser, {
+    defaultType: 'expense',
+  });
+  const effectiveType = resolvedType || 'expense';
 
   const categoryTotals = await Record.aggregate([
-    { $match: { ...match, type: 'expense' } },
+    { $match: match },
     {
       $group: {
         _id: { $toLower: '$category' },
@@ -117,7 +192,12 @@ const getCategoryWiseService = async ({ userId }, authUser) => {
     expense[entry._id] = entry.total;
   });
 
-  return { expense };
+  return {
+    type: effectiveType,
+    categories: expense,
+    expense: effectiveType === 'expense' ? expense : {},
+    income: effectiveType === 'income' ? expense : {},
+  };
 };
 
 module.exports = {

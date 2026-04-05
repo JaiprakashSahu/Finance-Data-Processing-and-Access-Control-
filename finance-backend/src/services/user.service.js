@@ -19,7 +19,7 @@ const createUserService = async (payload) => {
   const existingUser = await User.findOne({ email: payload.email });
 
   if (existingUser) {
-    throw new AppError('Validation failed', 400, 'Email already exists');
+    throw new AppError('Conflict', 409, 'Email already exists');
   }
 
   let user;
@@ -28,7 +28,7 @@ const createUserService = async (payload) => {
     user = await User.create(payload);
   } catch (error) {
     if (error.code === 11000) {
-      throw new AppError('Validation failed', 400, 'Email already exists');
+      throw new AppError('Conflict', 409, 'Email already exists');
     }
 
     throw error;

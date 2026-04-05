@@ -1,6 +1,8 @@
 # Finance Dashboard Project
 
-A full-stack finance dashboard showcasing backend engineering fundamentals (RBAC, validation, response consistency, service-layer design) with a multi-page React frontend.
+Role-based finance dashboard with analytics APIs.
+
+A full-stack system showcasing backend engineering fundamentals (RBAC, validation, response consistency, service-layer design) with a multi-page React frontend.
 
 ## Features
 
@@ -15,6 +17,7 @@ A full-stack finance dashboard showcasing backend engineering fundamentals (RBAC
   - Summary (income, expense, net balance)
   - Monthly trends
   - Category-wise expense aggregation
+  - Dashboard APIs support filtering by date range and transaction type, implemented using MongoDB aggregation pipelines
 - Frontend multi-page UX
   - Dashboard
   - Income & Expenses
@@ -115,6 +118,7 @@ Authentication is intentionally simulated for demonstration quality and evaluato
 - You can test roles without login flows using headers:
   - x-user-role: admin | analyst | viewer
   - x-user-id: <mongo object id>
+- If role headers are not provided, the API falls back to least-privilege viewer mode backed by a seeded default demo viewer.
 
 This can be replaced with real JWT auth in production without changing business logic boundaries.
 

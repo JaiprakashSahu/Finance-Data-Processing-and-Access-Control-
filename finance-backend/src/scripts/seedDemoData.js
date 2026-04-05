@@ -4,12 +4,94 @@ const mongoose = require('mongoose');
 const connectDB = require('../config/db');
 const User = require('../models/user.model');
 const Record = require('../models/record.model');
+const DEFAULT_FALLBACK_VIEWER_ID = '000000000000000000000001';
 
-const ensureUser = async ({ name, email, password, role, status = 'active' }) => {
-  let user = await User.findOne({ email }).select('+password');
+const PERIODS = [
+  { year: 2025, month: 11 },
+  { year: 2025, month: 12 },
+  { year: 2026, month: 1 },
+  { year: 2026, month: 2 },
+  { year: 2026, month: 3 },
+  { year: 2026, month: 4 },
+];
+
+const EXPENSE_CATEGORIES = ['rent', 'food', 'travel'];
+
+const toDate = (year, month, day) => {
+  return new Date(`${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
+};
+
+const toAmount = (value) => Math.round(value * 100) / 100;
+
+const buildUserRecords = (userId, profile) => {
+  return PERIODS.flatMap((period, index) => {
+    const incomeAmount = toAmount(profile.baseIncome + index * profile.incomeStep);
+    const expenseCategoryA = EXPENSE_CATEGORIES[index % EXPENSE_CATEGORIES.length];
+    const expenseCategoryB = EXPENSE_CATEGORIES[(index + 1) % EXPENSE_CATEGORIES.length];
+
+    const expenseAmountA = toAmount(profile.baseIncome * 0.24 + index * 11);
+    const expenseAmountB = toAmount(profile.baseIncome * 0.12 + index * 7);
+
+    return [
+      {
+        userId,
+        amount: incomeAmount,
+        type: 'income',
+        category: profile.incomeCategory,
+        date: toDate(period.year, period.month, 2),
+        notes: `${profile.name} recurring ${profile.incomeCategory}`,
+      },
+      {
+        userId,
+        amount: expenseAmountA,
+        type: 'expense',
+        category: expenseCategoryA,
+        date: toDate(period.year, period.month, 8),
+        notes: `${profile.name} ${expenseCategoryA} spend`,
+      },
+      {
+        userId,
+        amount: expenseAmountB,
+        type: 'expense',
+        category: expenseCategoryB,
+        date: toDate(period.year, period.month, 17),
+        notes: `${profile.name} ${expenseCategoryB} spend`,
+      },
+    ];
+  });
+};
+
+const ensureUser = async ({ id, name, email, password, role, status = 'active' }) => {
+  let user = null;
+
+  if (id && mongoose.Types.ObjectId.isValid(id)) {
+    user = await User.findById(id).select('+password');
+  }
 
   if (!user) {
-    user = await User.create({ name, email, password, role, status });
+    user = await User.findOne({ email }).select('+password');
+  }
+
+  if (id && user && String(user._id) !== id) {
+    await Record.deleteMany({ userId: user._id });
+    await User.deleteOne({ _id: user._id });
+    user = null;
+  }
+
+  if (!user) {
+    const createPayload = {
+      name,
+      email,
+      password,
+      role,
+      status,
+    };
+
+    if (id) {
+      createPayload._id = id;
+    }
+
+    user = await User.create(createPayload);
     return user;
   }
 
@@ -59,6 +141,14 @@ const run = async () => {
     role: 'analyst',
   });
 
+  const fallbackViewer = await ensureUser({
+    id: DEFAULT_FALLBACK_VIEWER_ID,
+    name: 'Default Demo Viewer',
+    email: 'default.viewer@finance.local',
+    password: 'Pass@1234',
+    role: 'viewer',
+  });
+
   const viewer = await ensureUser({
     name: 'Demo Viewer',
     email: 'viewer.demo@finance.local',
@@ -73,33 +163,66 @@ const run = async () => {
     role: 'viewer',
   });
 
-  const seededUserIds = [admin._id, analyst._id, viewer._id, otherViewer._id];
+  const seededUserIds = [admin._id, analyst._id, fallbackViewer._id, viewer._id, otherViewer._id];
 
   await Record.deleteMany({ userId: { $in: seededUserIds } });
 
-  const seedRecords = [
-    { userId: viewer._id, amount: 4200, type: 'income', category: 'salary', date: '2026-01-02', notes: 'Monthly salary' },
-    { userId: viewer._id, amount: 260, type: 'expense', category: 'housing', date: '2026-01-05', notes: 'Utilities payment' },
-    { userId: viewer._id, amount: 190, type: 'expense', category: 'personal', date: '2026-01-11', notes: 'Health and wellness' },
-    { userId: viewer._id, amount: 120, type: 'expense', category: 'transportation', date: '2026-01-15', notes: 'Fuel and ride share' },
-
-    { userId: analyst._id, amount: 5100, type: 'income', category: 'salary', date: '2026-02-01', notes: 'Consulting payout' },
-    { userId: analyst._id, amount: 340, type: 'expense', category: 'housing', date: '2026-02-04', notes: 'Rent contribution' },
-    { userId: analyst._id, amount: 210, type: 'expense', category: 'personal', date: '2026-02-10', notes: 'Education subscription' },
-    { userId: analyst._id, amount: 95, type: 'expense', category: 'transportation', date: '2026-02-18', notes: 'Metro and cabs' },
-
-    { userId: otherViewer._id, amount: 3800, type: 'income', category: 'salary', date: '2026-03-02', notes: 'Primary income' },
-    { userId: otherViewer._id, amount: 310, type: 'expense', category: 'housing', date: '2026-03-07', notes: 'Home maintenance' },
-    { userId: otherViewer._id, amount: 170, type: 'expense', category: 'personal', date: '2026-03-12', notes: 'Family shopping' },
-    { userId: otherViewer._id, amount: 140, type: 'expense', category: 'transportation', date: '2026-03-20', notes: 'Vehicle servicing' },
-
-    { userId: admin._id, amount: 9000, type: 'income', category: 'business', date: '2026-03-01', notes: 'Admin business income' },
-    { userId: admin._id, amount: 600, type: 'expense', category: 'housing', date: '2026-03-05', notes: 'Property tax' },
+  const userProfiles = [
+    {
+      id: admin._id,
+      name: 'admin',
+      baseIncome: 9600,
+      incomeStep: 140,
+      incomeCategory: 'business',
+    },
+    {
+      id: analyst._id,
+      name: 'analyst',
+      baseIncome: 6200,
+      incomeStep: 95,
+      incomeCategory: 'salary',
+    },
+    {
+      id: fallbackViewer._id,
+      name: 'defaultViewer',
+      baseIncome: 5400,
+      incomeStep: 85,
+      incomeCategory: 'salary',
+    },
+    {
+      id: viewer._id,
+      name: 'viewer',
+      baseIncome: 5100,
+      incomeStep: 80,
+      incomeCategory: 'salary',
+    },
+    {
+      id: otherViewer._id,
+      name: 'viewer2',
+      baseIncome: 4500,
+      incomeStep: 70,
+      incomeCategory: 'salary',
+    },
   ];
 
-  await Record.insertMany(seedRecords.map((item) => ({ ...item, date: new Date(item.date) })));
+  const seedRecords = userProfiles.flatMap((profile) => {
+    return buildUserRecords(profile.id, profile);
+  });
+
+  await Record.insertMany(seedRecords);
 
   const totals = await Record.countDocuments({ userId: { $in: seededUserIds } });
+  const recordsPerUser = await Record.aggregate([
+    { $match: { userId: { $in: seededUserIds } } },
+    {
+      $group: {
+        _id: '$userId',
+        total: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const recordCountMap = new Map(recordsPerUser.map((item) => [String(item._id), item.total]));
 
   console.log(
     JSON.stringify(
@@ -108,8 +231,16 @@ const run = async () => {
         users: {
           admin: admin.email,
           analyst: analyst.email,
+          defaultViewer: fallbackViewer.email,
           viewer: viewer.email,
           viewer2: otherViewer.email,
+        },
+        recordsPerUser: {
+          admin: recordCountMap.get(String(admin._id)) || 0,
+          analyst: recordCountMap.get(String(analyst._id)) || 0,
+          defaultViewer: recordCountMap.get(String(fallbackViewer._id)) || 0,
+          viewer: recordCountMap.get(String(viewer._id)) || 0,
+          viewer2: recordCountMap.get(String(otherViewer._id)) || 0,
         },
         seededRecords: totals,
       },
