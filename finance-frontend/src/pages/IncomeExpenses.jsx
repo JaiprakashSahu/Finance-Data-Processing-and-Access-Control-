@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Sidebar from '../components/Sidebar';
-import { api, unwrapData } from '../services/api';
+import RoleSelector from '../components/RoleSelector';
+import { api, getStoredRole, unwrapData } from '../services/api';
 
 const currency = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -27,6 +28,7 @@ const formatDate = (value) => {
 
 export default function IncomeExpenses() {
   const [records, setRecords] = useState([]);
+  const [activeRole, setActiveRole] = useState(getStoredRole());
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [netWorth, setNetWorth] = useState(0);
   const [typeFilter, setTypeFilter] = useState('all');
@@ -59,7 +61,7 @@ export default function IncomeExpenses() {
     };
 
     loadSummary();
-  }, []);
+  }, [activeRole]);
 
   useEffect(() => {
     const loadRecords = async () => {
@@ -129,7 +131,7 @@ export default function IncomeExpenses() {
     };
 
     loadRecords();
-  }, [page, limit, typeFilter, categoryFilter, startDate, endDate]);
+  }, [activeRole, page, limit, typeFilter, categoryFilter, startDate, endDate]);
 
   const visibleRecords = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -169,9 +171,12 @@ export default function IncomeExpenses() {
               <p className="text-xs uppercase tracking-[0.22em] text-cyan-50/90">Records Module</p>
               <h1 className="mt-1 text-2xl font-semibold tracking-tight">Income & Expenses</h1>
             </div>
-            <div className="rounded-xl bg-slate-900/30 px-4 py-2 text-right backdrop-blur">
-              <p className="text-sm">Total Records</p>
-              <p className="text-xl font-semibold">{pagination.totalItems}</p>
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              <RoleSelector onRoleChanged={setActiveRole} />
+              <div className="rounded-xl bg-slate-900/30 px-4 py-2 text-right backdrop-blur">
+                <p className="text-sm">Total Records</p>
+                <p className="text-xl font-semibold">{pagination.totalItems}</p>
+              </div>
             </div>
           </div>
         </header>

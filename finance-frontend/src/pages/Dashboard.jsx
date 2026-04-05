@@ -3,7 +3,8 @@ import Sidebar from '../components/Sidebar';
 import SummaryCards from '../components/SummaryCards';
 import ChartSection from '../components/ChartSection';
 import CategoryCards from '../components/CategoryCards';
-import { api, unwrapData } from '../services/api';
+import RoleSelector from '../components/RoleSelector';
+import { api, getStoredRole, unwrapData } from '../services/api';
 
 const toNumber = (value) => {
   const parsed = Number(value);
@@ -20,6 +21,7 @@ export default function Dashboard() {
   const [trends, setTrends] = useState([]);
   const [categoryWise, setCategoryWise] = useState({ expense: {} });
   const [selectedMonth, setSelectedMonth] = useState('');
+  const [activeRole, setActiveRole] = useState(getStoredRole());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const currentMonthKey = getCurrentMonthKey();
@@ -79,7 +81,11 @@ export default function Dashboard() {
     };
 
     loadDashboard();
-  }, []);
+  }, [activeRole, currentMonthKey]);
+
+  const handleRoleChange = (role) => {
+    setActiveRole(role);
+  };
 
   const availableMonths = useMemo(() => trends.map((item) => item.month), [trends]);
 
@@ -139,9 +145,12 @@ export default function Dashboard() {
               <p className="text-xs uppercase tracking-[0.22em] text-cyan-50/90">Finance Analytics Panel</p>
               <h1 className="mt-1 text-2xl font-semibold tracking-tight">Personal Finance Dashboard</h1>
             </div>
-            <div className="rounded-xl bg-slate-900/30 px-4 py-2 text-right backdrop-blur">
-              <p className="text-sm">Selected Month</p>
-              <p className="text-xl font-semibold">{selectedMonth || 'N/A'}</p>
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              <RoleSelector onRoleChanged={handleRoleChange} />
+              <div className="rounded-xl bg-slate-900/30 px-4 py-2 text-right backdrop-blur">
+                <p className="text-sm">Selected Month</p>
+                <p className="text-xl font-semibold">{selectedMonth || 'N/A'}</p>
+              </div>
             </div>
           </div>
         </header>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Sidebar from '../components/Sidebar';
-import { api, unwrapData } from '../services/api';
+import RoleSelector from '../components/RoleSelector';
+import { api, getStoredRole, unwrapData } from '../services/api';
 
 const currency = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -22,6 +23,7 @@ const buildProgress = (current, target) => {
 
 export default function AssetsGoals() {
   const [summary, setSummary] = useState({ totalIncome: 0, totalExpense: 0, netBalance: 0 });
+  const [activeRole, setActiveRole] = useState(getStoredRole());
   const [categoryWise, setCategoryWise] = useState({ expense: {} });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -54,7 +56,7 @@ export default function AssetsGoals() {
     };
 
     loadData();
-  }, []);
+  }, [activeRole]);
 
   const assets = useMemo(() => {
     const balance = Math.max(summary.netBalance, 0);
@@ -109,9 +111,12 @@ export default function AssetsGoals() {
               <p className="text-xs uppercase tracking-[0.22em] text-fuchsia-50/90">Wealth Planning</p>
               <h1 className="mt-1 text-2xl font-semibold tracking-tight">Assets & Goals</h1>
             </div>
-            <div className="rounded-xl bg-slate-900/30 px-4 py-2 text-right backdrop-blur">
-              <p className="text-sm">Net Balance</p>
-              <p className="text-xl font-semibold">{currency.format(summary.netBalance)}</p>
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              <RoleSelector onRoleChanged={setActiveRole} />
+              <div className="rounded-xl bg-slate-900/30 px-4 py-2 text-right backdrop-blur">
+                <p className="text-sm">Net Balance</p>
+                <p className="text-xl font-semibold">{currency.format(summary.netBalance)}</p>
+              </div>
             </div>
           </div>
         </header>

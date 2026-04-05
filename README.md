@@ -64,6 +64,23 @@ A full-stack system showcasing backend engineering fundamentals (RBAC, validatio
   - Finance-Dashboard.postman_collection.json
 - docs/screenshots
 
+## Architecture
+
+- Request flow:
+  - Routes apply authentication and RBAC middleware
+  - Controllers stay thin and delegate business logic to services
+  - Services enforce ownership, filtering, and aggregation logic
+- Data layer:
+  - MongoDB + Mongoose models for User and Record entities
+  - Aggregation pipelines power dashboard analytics (summary, trends, category-wise)
+- API contract:
+  - Unified response envelope for success and failure
+  - Joi validation for body, params, and query inputs
+- Auth model:
+  - Mock auth via headers for demonstration (`x-user-role`, `x-user-id`)
+  - Least-privilege fallback role is `viewer`
+  - RBAC authorization is route-driven, not controller-hardcoded
+
 ## Setup Instructions
 
 ## 1) Clone and install
@@ -143,6 +160,79 @@ This can be replaced with real JWT auth in production without changing business 
 - GET /dashboard/summary (admin, analyst, viewer)
 - GET /dashboard/trends (admin, analyst, viewer)
 - GET /dashboard/category-wise (admin, analyst, viewer)
+
+## Test Matrix (curl-ready)
+
+Set base URL and reusable headers:
+
+```bash
+BASE_URL="http://localhost:3000"
+ADMIN_H="x-user-role: admin"
+ANALYST_H="x-user-role: analyst"
+VIEWER_H="x-user-role: viewer"
+```
+
+1. Health check (expect 200)
+
+```bash
+curl -i "$BASE_URL/health"
+```
+
+2. Admin users list (expect 200)
+
+```bash
+curl -i -H "$ADMIN_H" "$BASE_URL/users"
+```
+
+3. Viewer users list blocked (expect 403)
+
+```bash
+curl -i -H "$VIEWER_H" "$BASE_URL/users"
+```
+
+4. Missing role defaults to viewer, users blocked (expect 403)
+
+```bash
+curl -i "$BASE_URL/users"
+```
+
+5. Records list for default viewer mode (expect 200 + pagination)
+
+```bash
+curl -i "$BASE_URL/records?page=1&limit=5"
+```
+
+6. Dashboard summary with date and type filters (expect 200)
+
+```bash
+curl -i -H "$ADMIN_H" "$BASE_URL/dashboard/summary?startDate=2025-11-01&endDate=2026-04-30&type=expense"
+```
+
+7. Dashboard trends year-month aggregation (expect 200, `month` like `YYYY-MM`)
+
+```bash
+curl -i -H "$ADMIN_H" "$BASE_URL/dashboard/trends?startDate=2025-11-01&endDate=2026-04-30"
+```
+
+8. Category-wise dashboard filter by type (expect 200)
+
+```bash
+curl -i -H "$ADMIN_H" "$BASE_URL/dashboard/category-wise?type=income"
+```
+
+9. Invalid dashboard date range validation (expect 400)
+
+```bash
+curl -i -H "$ADMIN_H" "$BASE_URL/dashboard/summary?startDate=2026-12-31&endDate=2025-01-01"
+```
+
+10. Duplicate email conflict (expect 409)
+
+```bash
+curl -i -H "$ADMIN_H" -H "Content-Type: application/json" \
+  -d '{"name":"Demo User","email":"viewer.demo@finance.local","password":"Pass@1234","role":"viewer"}' \
+  "$BASE_URL/users"
+```
 
 ## Postman Collection
 
