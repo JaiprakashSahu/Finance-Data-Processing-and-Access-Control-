@@ -55,7 +55,7 @@ export default function IncomeExpenses() {
         const response = await api.get('/dashboard/summary');
         const summary = unwrapData(response) || {};
         setNetWorth(Number(summary.netBalance) || 0);
-      } catch (_error) {
+      } catch {
         setNetWorth(0);
       }
     };

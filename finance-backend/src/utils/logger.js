@@ -9,11 +9,11 @@ const formatMeta = (meta = {}) => {
 };
 
 const logInfo = (message, meta = {}) => {
-  console.log(`[${new Date().toISOString()}] INFO: ${message}${formatMeta(meta)}`);
+  process.stdout.write(`[${new Date().toISOString()}] INFO: ${message}${formatMeta(meta)}\n`);
 };
 
 const logError = (message, meta = {}) => {
-  console.error(`[${new Date().toISOString()}] ERROR: ${message}${formatMeta(meta)}`);
+  process.stderr.write(`[${new Date().toISOString()}] ERROR: ${message}${formatMeta(meta)}\n`);
 };
 
 module.exports = {

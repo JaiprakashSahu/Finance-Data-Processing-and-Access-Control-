@@ -1,268 +1,305 @@
-# Finance Dashboard Project
+# 💼 Finance Dashboard - Role-Based Personal Finance Management
 
-Role-based finance dashboard with analytics APIs.
+<div align="center">
 
-A full-stack system showcasing backend engineering fundamentals (RBAC, validation, response consistency, service-layer design) with a multi-page React frontend.
+![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)
+![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite)
+![Node.js](https://img.shields.io/badge/Node.js-18+-339933?style=for-the-badge&logo=nodedotjs)
+![Express](https://img.shields.io/badge/Express-5-000000?style=for-the-badge&logo=express)
+![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?style=for-the-badge&logo=mongodb)
+![TailwindCSS](https://img.shields.io/badge/Tailwind-3-38B2AC?style=for-the-badge&logo=tailwind-css)
 
-## Features
+### 🚀 [Run Locally](#-getting-started) | 📖 [Features](#-key-features)
 
-- Role-based access control with mock authentication
-  - Roles: admin, analyst, viewer
-  - Header-driven role simulation via x-user-role and x-user-id
-- Records API
-  - CRUD endpoints for financial records
-  - Input validation and ownership restrictions
-  - Filtering and pagination support
-- Dashboard analytics
-  - Summary (income, expense, net balance)
-  - Monthly trends
-  - Category-wise expense aggregation
-  - Dashboard APIs support filtering by date range and transaction type, implemented using MongoDB aggregation pipelines
-- Frontend multi-page UX
-  - Dashboard
-  - Income & Expenses
-  - Assets & Goals
-  - Functional sidebar routing with active state
-- Consistent API response envelope
-  - Success and error responses use:
-    {
-      "message": string,
-      "data": any,
-      "error": null | string
-    }
+*A full-stack dashboard for finance records, role-aware access control, and analytics insights with a clean multi-page interface.*
 
-## Tech Stack
+</div>
 
-### Backend
-- Node.js
-- Express
-- MongoDB + Mongoose
-- Joi validation
+---
 
-### Frontend
-- React (functional components)
-- Tailwind CSS
-- React Router DOM
-- Axios
-- Recharts
+## 🌟 Overview
 
-## Project Structure
+Finance Dashboard is a practical full-stack project that connects backend access control with frontend analytics UX. It is built to showcase production-style patterns: service-layer architecture, consistent API contracts, secure defaults, and filterable insights.
 
-- finance-backend
-  - src/controllers
-  - src/services
-  - src/routes
-  - src/middleware
-  - src/models
-  - src/validation
-  - src/scripts/seedDemoData.js
-- finance-frontend
-  - src/components
-  - src/pages
-  - src/services/api.js
-- postman
-  - Finance-Dashboard.postman_collection.json
-- docs/screenshots
+### 💡 Why This Project?
 
-## Architecture
+- **RBAC-Driven**: Role-based behavior for `admin`, `analyst`, and `viewer`
+- **Ownership-Safe**: Non-admin access is scoped to owned records
+- **Analytics Ready**: Summary, monthly trends, and category insights
+- **Demo Friendly**: Header-driven mock auth for instant role simulation
+- **Modern UI**: Responsive React pages with charts and clear state handling
 
-- Request flow:
-  - Routes apply authentication and RBAC middleware
-  - Controllers stay thin and delegate business logic to services
-  - Services enforce ownership, filtering, and aggregation logic
-- Data layer:
-  - MongoDB + Mongoose models for User and Record entities
-  - Aggregation pipelines power dashboard analytics (summary, trends, category-wise)
-- API contract:
-  - Unified response envelope for success and failure
-  - Joi validation for body, params, and query inputs
-- Auth model:
-  - Mock auth via headers for demonstration (`x-user-role`, `x-user-id`)
-  - Least-privilege fallback role is `viewer`
-  - RBAC authorization is route-driven, not controller-hardcoded
+---
 
-## Setup Instructions
+## ✨ Key Features
 
-## 1) Clone and install
+### 🔐 Role-Based Access Control
+- Header-based role simulation via `x-user-role` and `x-user-id`
+- Least-privilege fallback behavior defaults to `viewer`
+- Route-level authorization with clean middleware boundaries
 
-```bash
-# from project root
-npm --prefix finance-backend install
-npm --prefix finance-frontend install
+### 🧾 Records Management
+- CRUD APIs for financial records
+- Validation for request body, params, and query filters
+- Pagination and filtering support for scalable lists
+
+### 📊 Dashboard Analytics
+- **Summary**: total income, total expense, net balance
+- **Trends**: monthly aggregation using `YYYY-MM` grouping
+- **Category-Wise**: grouped insights with date/type filters
+
+### 🖥️ Multi-Page Frontend
+- **Dashboard** page with trend and category visuals
+- **Income & Expenses** page for transaction-centric flow
+- **Assets & Goals** page for broader planning context
+- Role switcher for live RBAC behavior demonstration
+
+### 🧪 Developer Workflow
+- Demo seed script for meaningful data out of the box
+- Postman collection for quick endpoint validation
+- Frontend lint/build scripts for pre-deploy quality checks
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend (Client)
+- **Framework**: React 19 + Vite 8
+- **Styling**: TailwindCSS
+- **Routing**: React Router DOM
+- **Charts**: Recharts
+- **HTTP Client**: Axios
+
+### Backend (Server)
+- **Runtime**: Node.js
+- **Framework**: Express 5
+- **Database**: MongoDB + Mongoose
+- **Validation**: Joi
+- **Security**: Helmet, CORS
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- MongoDB instance (local or Atlas)
+- npm
+
+### Installation
+
+1. **Clone and enter the repository**
+  ```bash
+  git clone <your-repo-url>
+  cd Zorvyn
+  ```
+
+2. **Install dependencies**
+  ```bash
+  npm --prefix finance-backend install
+  npm --prefix finance-frontend install
+  ```
+
+3. **Environment setup**
+
+  **Backend (`finance-backend/.env`)**
+  ```env
+  PORT=3000
+  MONGO_URI=<your_mongodb_connection_string>
+  ```
+
+  **Frontend (`finance-frontend/.env`)**
+  ```env
+  VITE_API_BASE_URL=http://localhost:3000
+  ```
+
+  Reference templates:
+  - `finance-backend/.env.example`
+  - `finance-frontend/.env.example`
+
+4. **Seed demo data**
+  ```bash
+  npm --prefix finance-backend run seed:demo
+  ```
+
+5. **Run services**
+
+  **Terminal 1 (Backend)**
+  ```bash
+  npm --prefix finance-backend run dev
+  ```
+
+  **Terminal 2 (Frontend)**
+  ```bash
+  npm --prefix finance-frontend run dev
+  ```
+
+  Open `http://localhost:5173`
+
+---
+
+## 📁 Project Structure
+
+```text
+Zorvyn/
+├── finance-backend/
+│   ├── src/
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   ├── scripts/
+│   │   ├── services/
+│   │   ├── utils/
+│   │   └── validation/
+│   └── package.json
+├── finance-frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── services/
+│   └── package.json
+├── postman/
+│   └── Finance-Dashboard.postman_collection.json
+└── docs/
+   └── screenshots/
 ```
 
-## 2) Environment variables
+---
 
-### Backend (finance-backend/.env)
+## 🧠 Architecture Highlights
 
-```env
-PORT=3000
-MONGO_URI=<your_mongodb_connection_string>
+- Controllers stay thin and delegate to service methods
+- Services centralize business logic, ownership, and filtering rules
+- Middleware handles auth simulation and RBAC checks before controllers
+- API responses follow a unified envelope:
+
+```json
+{
+  "message": "string",
+  "data": {},
+  "error": null
+}
 ```
 
-Reference template: finance-backend/.env.example
+---
 
-### Frontend (finance-frontend/.env)
-
-```env
-VITE_API_BASE_URL=http://localhost:3000
-```
-
-Reference template: finance-frontend/.env.example
-
-## 3) Seed demo data
-
-```bash
-npm --prefix finance-backend run seed:demo
-```
-
-This seeds sample users and records so dashboards are meaningful.
-
-## 4) Run backend and frontend
-
-```bash
-npm --prefix finance-backend run dev
-npm --prefix finance-frontend run dev
-```
-
-Frontend default URL: http://localhost:5173
-
-## Mock Authentication (Assumption)
-
-Authentication is intentionally simulated for demonstration quality and evaluator clarity.
-
-- Protected requests use middleware-injected req.user.
-- You can test roles without login flows using headers:
-  - x-user-role: admin | analyst | viewer
-  - x-user-id: <mongo object id>
-- If role headers are not provided, the API falls back to least-privilege viewer mode backed by a seeded default demo viewer.
-
-This can be replaced with real JWT auth in production without changing business logic boundaries.
-
-## API Endpoints
+## 🔌 API Overview
 
 ### Health
-- GET /health
+- `GET /health`
 
 ### Users
-- POST /users (admin)
-- GET /users (admin)
-- PATCH /users/:id/role (admin)
+- `POST /users` (admin)
+- `GET /users` (admin)
+- `PATCH /users/:id/role` (admin)
 
 ### Records
-- POST /records (admin)
-- GET /records (admin, analyst, viewer)
-- GET /records/:id (admin, analyst, viewer)
-- PUT /records/:id (admin)
-- DELETE /records/:id (admin)
+- `POST /records` (admin)
+- `GET /records` (admin, analyst, viewer)
+- `GET /records/:id` (admin, analyst, viewer)
+- `PUT /records/:id` (admin)
+- `DELETE /records/:id` (admin)
 
 ### Dashboard
-- GET /dashboard/summary (admin, analyst, viewer)
-- GET /dashboard/trends (admin, analyst, viewer)
-- GET /dashboard/category-wise (admin, analyst, viewer)
+- `GET /dashboard/summary` (admin, analyst, viewer)
+- `GET /dashboard/trends` (admin, analyst, viewer)
+- `GET /dashboard/category-wise` (admin, analyst, viewer)
 
-## Test Matrix (curl-ready)
+---
 
-Set base URL and reusable headers:
+## 🧪 Quick API Smoke Test
 
 ```bash
 BASE_URL="http://localhost:3000"
 ADMIN_H="x-user-role: admin"
-ANALYST_H="x-user-role: analyst"
 VIEWER_H="x-user-role: viewer"
-```
 
-1. Health check (expect 200)
-
-```bash
 curl -i "$BASE_URL/health"
-```
-
-2. Admin users list (expect 200)
-
-```bash
 curl -i -H "$ADMIN_H" "$BASE_URL/users"
-```
-
-3. Viewer users list blocked (expect 403)
-
-```bash
 curl -i -H "$VIEWER_H" "$BASE_URL/users"
-```
-
-4. Missing role defaults to viewer, users blocked (expect 403)
-
-```bash
-curl -i "$BASE_URL/users"
-```
-
-5. Records list for default viewer mode (expect 200 + pagination)
-
-```bash
 curl -i "$BASE_URL/records?page=1&limit=5"
-```
-
-6. Dashboard summary with date and type filters (expect 200)
-
-```bash
 curl -i -H "$ADMIN_H" "$BASE_URL/dashboard/summary?startDate=2025-11-01&endDate=2026-04-30&type=expense"
 ```
 
-7. Dashboard trends year-month aggregation (expect 200, `month` like `YYYY-MM`)
+---
 
-```bash
-curl -i -H "$ADMIN_H" "$BASE_URL/dashboard/trends?startDate=2025-11-01&endDate=2026-04-30"
-```
+## 📮 Postman Collection
 
-8. Category-wise dashboard filter by type (expect 200)
+Import the collection from:
 
-```bash
-curl -i -H "$ADMIN_H" "$BASE_URL/dashboard/category-wise?type=income"
-```
+- [postman/Finance-Dashboard.postman_collection.json](postman/Finance-Dashboard.postman_collection.json)
 
-9. Invalid dashboard date range validation (expect 400)
+---
 
-```bash
-curl -i -H "$ADMIN_H" "$BASE_URL/dashboard/summary?startDate=2026-12-31&endDate=2025-01-01"
-```
+## 🖼️ Screenshots
 
-10. Duplicate email conflict (expect 409)
+### Dashboard
+![Dashboard](docs/screenshots/dashboard.png)
 
-```bash
-curl -i -H "$ADMIN_H" -H "Content-Type: application/json" \
-  -d '{"name":"Demo User","email":"viewer.demo@finance.local","password":"Pass@1234","role":"viewer"}' \
-  "$BASE_URL/users"
-```
+### Income & Expenses
+![Income & Expenses](docs/screenshots/income-expenses.png)
 
-## Postman Collection
+### Assets & Goals
+![Assets & Goals](docs/screenshots/assets-goals.png)
 
-Import:
-- postman/Finance-Dashboard.postman_collection.json
+---
 
-Collection includes health, users, records, and dashboard requests with role header examples.
+## 🚀 Deployment
 
-## UI Screenshots
+### Backend (Render / Railway)
 
-- Dashboard
-  - ![Dashboard](docs/screenshots/dashboard.png)
-- Income & Expenses
-  - ![Income & Expenses](docs/screenshots/income-expenses.png)
-- Assets & Goals
-  - ![Assets & Goals](docs/screenshots/assets-goals.png)
+1. Set root directory to `finance-backend`
+2. Build command:
+  ```bash
+  npm install
+  ```
+3. Start command:
+  ```bash
+  npm start
+  ```
+4. Environment variables:
+  - `MONGO_URI`
+  - `PORT` (if platform requires explicit port)
 
-## Final Validation Notes
+### Frontend (Vercel / Netlify)
 
-The project has been prepared for submission with:
-- cleaned modular frontend structure
-- consistent backend response envelope
-- route-level RBAC checks and ownership behavior
-- sample data seeding support
-- multi-page frontend navigation and loading/empty/error states
+1. Set root directory to `finance-frontend`
+2. Build command:
+  ```bash
+  npm run build
+  ```
+3. Output directory: `dist`
+4. Environment variable:
+  - `VITE_API_BASE_URL=<deployed_backend_url>`
 
-## Optional Deployment (Enhancement)
+### Post-Deploy Checklist
 
-Suggested targets:
-- Backend: Render or Railway
-- Frontend: Vercel or Netlify
+1. Confirm `GET /health` returns `200`
+2. Confirm dashboard pages load with API data
+3. Confirm role switching changes data scope as expected
 
-After deployment, add live links here for submission.
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/your-change`)
+3. Commit your changes (`git commit -m "Add your feature"`)
+4. Push to your branch (`git push origin feature/your-change`)
+5. Open a Pull Request
+
+---
+
+## 📝 License
+
+No license file has been added yet.
+
+---
+
+<div align="center">
+
+**Built for clean architecture, reliable APIs, and practical role-based analytics demos.**
+
+</div>

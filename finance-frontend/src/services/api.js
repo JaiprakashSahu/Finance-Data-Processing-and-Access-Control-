@@ -31,8 +31,11 @@ export const setStoredRole = (role) => {
   return normalizedRole;
 };
 
+const resolvedApiBaseUrl =
+  import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://localhost:3000' : '');
+
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
+  baseURL: resolvedApiBaseUrl || undefined,
   timeout: 12000,
 });
 

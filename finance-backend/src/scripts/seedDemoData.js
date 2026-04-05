@@ -224,8 +224,8 @@ const run = async () => {
 
   const recordCountMap = new Map(recordsPerUser.map((item) => [String(item._id), item.total]));
 
-  console.log(
-    JSON.stringify(
+  process.stdout.write(
+    `${JSON.stringify(
       {
         message: 'Demo data seeded successfully',
         users: {
@@ -246,13 +246,13 @@ const run = async () => {
       },
       null,
       2
-    )
+    )}\n`
   );
 };
 
 run()
   .catch((error) => {
-    console.error('Seed failed:', error.message);
+    process.stderr.write(`Seed failed: ${error.message}\n`);
     process.exitCode = 1;
   })
   .finally(async () => {
