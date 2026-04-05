@@ -1,95 +1,227 @@
-# Finance Data Processing and Access Control
+# 💰 Finance Data Processing & Access Control System
 
-Finance Data Processing and Access Control is a full-stack application for managing personal finance records with role-based permissions.
-It separates a React frontend and an Express/MongoDB backend for clean deployment and maintainability.
-The project demonstrates secure API access, analytics dashboards, and production-ready repository structure.
+<div align="center">
 
-## Tech Stack
+![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react)
+![Node.js](https://img.shields.io/badge/Node.js-Backend-339933?style=for-the-badge&logo=node.js)
+![Express](https://img.shields.io/badge/Express.js-API-black?style=for-the-badge&logo=express)
+![MongoDB](https://img.shields.io/badge/MongoDB-Database-47A248?style=for-the-badge&logo=mongodb)
+![Vercel](https://img.shields.io/badge/Frontend-Vercel-black?style=for-the-badge&logo=vercel)
+![Render](https://img.shields.io/badge/Backend-Render-46E3B7?style=for-the-badge&logo=render)
+
+### 🚀 [Live Demo](https://finance-data-processing-and-access-pied-one.vercel.app)
+
+### 🔗 [Backend API](https://finance-data-processing-and-access-ow1l.onrender.com)
+
+*A secure, scalable financial data processing platform with role-based access control, real-time analytics, and production-ready architecture.*
+
+</div>
+
+---
+
+## 🌟 Overview
+
+This project is a **full-stack finance data management system** designed to handle sensitive financial information with **secure role-based access control (RBAC)**.
+
+It enables users to:
+
+- Process and manage financial data
+- Visualize analytics through dashboards
+- Control access based on user roles (Admin, Analyst, Viewer)
+
+---
+
+## ✨ Key Features
+
+### 🔐 Role-Based Access Control (RBAC)
+
+- Admin: Full access (CRUD operations)
+- Analyst: Data processing + analytics
+- Viewer: Read-only dashboard access
+
+### 📊 Data Processing & Analytics
+
+- Financial dataset handling
+- Real-time dashboard visualization
+- Dynamic graph updates
+
+### ⚡ Scalable Backend Architecture
+
+- RESTful API with Express.js
+- Modular structure (controllers, services, routes)
+- MongoDB for persistent storage
+
+### 🎨 Modern Frontend
+
+- Built with React + Vite
+- Responsive UI with clean dashboard design
+- API-integrated dynamic data rendering
+
+---
+
+## 🛠️ Tech Stack
+
+### Frontend
 
 - React (Vite)
+- Axios (API calls)
+- Tailwind CSS
+
+### Backend
+
 - Node.js
-- Express
+- Express.js
 - MongoDB (Mongoose)
 
-## Key Features
+### Deployment
 
-- Role-Based Access Control (admin, analyst, viewer)
-- Dashboard analytics (summary, trends, category-wise insights)
-- Record filtering and pagination
-- API security middleware (CORS, Helmet, validation)
-- Consistent API response envelope and error handling
+- Frontend: Vercel
+- Backend: Render
 
-## Architecture
+---
 
-- Frontend: React application in `finance-frontend/`
-- Backend: Node.js + Express API in `finance-backend/`
-- Documentation and artifacts: `docs/`
-- API collection: `postman/`
+## 📁 Project Structure
 
-This separation enables independent frontend/backend deployment and easier scaling.
-
-## Local Setup
-
-1. Install dependencies:
-
-```bash
-npm --prefix finance-backend install
-npm --prefix finance-frontend install
+```text
+Finance-Data-Processing-and-Access-Control-/
+├── finance-backend/
+│   ├── src/
+│   │   ├── controllers/
+│   │   ├── services/
+│   │   ├── routes/
+│   │   ├── middleware/
+│   │   ├── models/
+│   │   └── validation/
+│
+├── finance-frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   └── services/
+│
+├── postman/
+├── docs/
 ```
 
-2. Configure environment files from examples:
+---
 
-- `finance-backend/.env.example`
-- `finance-frontend/.env.example`
+## 🚀 Getting Started
 
-3. Run backend:
-
-```bash
-npm --prefix finance-backend run dev
-```
-
-4. Run frontend:
+### 1. Clone Repository
 
 ```bash
-npm --prefix finance-frontend run dev
+git clone https://github.com/JaiprakashSahu/Finance-Data-Processing-and-Access-Control-.git
+cd Finance-Data-Processing-and-Access-Control-
 ```
 
-## Production Setup
+---
 
-1. Backend deploy target: Render
-- Configure environment values for `MONGO_URI` and `JWT_SECRET`
+### 2. Backend Setup
 
-2. Frontend deploy target: Vercel
-- Set `VITE_API_URL` to backend URL
+```bash
+cd finance-backend
+npm install
+npm start
+```
 
-3. Ensure frontend routes are rewritten to `index.html` for SPA routing (configured via `finance-frontend/vercel.json`).
+Create `.env`:
 
-## Deployment Links
+```env
+MONGO_URI=your_mongodb_uri
+JWT_SECRET=your_secret
+PORT=3000
+```
 
-- Frontend: https://finance-data-processing-and-access-pied-one.vercel.app
-- Backend: https://finance-data-processing-and-access-ow1l.onrender.com
+---
 
-## Screenshots
+### 3. Frontend Setup
+
+```bash
+cd finance-frontend
+npm install
+npm run dev
+```
+
+Create `.env`:
+
+```env
+VITE_API_URL=http://localhost:3000
+```
+
+---
+
+## 🌐 Deployment
+
+### Frontend (Vercel)
+
+- Root Directory: `finance-frontend`
+- Build: `vite build`
+- Output: `dist`
+
+### Backend (Render)
+
+- Root Directory: `finance-backend`
+- Start: `node src/server.js`
+
+---
+
+## 📡 API Documentation
+
+Postman Collection available in:
+
+```text
+/postman/Finance-Dashboard.postman_collection.json
+```
+
+---
+
+## 📊 Core Functional Flow
+
+1. User logs in
+2. Role is assigned (Admin / Analyst / Viewer)
+3. API validates permissions
+4. Data is processed and stored
+5. Dashboard displays real-time insights
+
+---
+
+## 🔧 Key Highlights
+
+- Clean modular backend architecture
+- Secure authentication & authorization
+- Production deployment (Vercel + Render)
+- Scalable API design
+- Real-world finance use case
+
+---
+
+## 📸 Screenshots
 
 ### Dashboard
 ![Dashboard](docs/screenshots/dashboard.png)
 
 ### Income & Expenses
-![Income and Expenses](docs/screenshots/income-expenses.png)
+![Income & Expenses](docs/screenshots/income-expenses.png)
 
 ### Assets & Goals
-![Assets and Goals](docs/screenshots/assets-goals.png)
+![Assets & Goals](docs/screenshots/assets-goals.png)
 
-## API Documentation
+---
 
-- Postman Collection: [postman/Finance-Dashboard.postman_collection.json](postman/Finance-Dashboard.postman_collection.json)
-- Swagger (optional): Not configured in this repository.
+## 🤝 Contributing
 
-## Repository Structure
+Feel free to fork the repo and submit pull requests.
 
-```text
-finance-backend/
-finance-frontend/
-docs/
-postman/
-```
+---
+
+## 📝 License
+
+MIT License
+
+---
+
+<div align="center">
+
+**Built with ❤️ using MERN Stack & modern web technologies**
+
+</div>
