@@ -1,51 +1,35 @@
-const jwt = require('jsonwebtoken');
-const User = require('../models/user.model');
 const AppError = require('../utils/appError');
 
-const authenticate = async (req, _res, next) => {
-  try {
-    const authHeader = req.headers.authorization;
+const ALLOWED_ROLES = ['admin', 'analyst', 'viewer'];
+const DEFAULT_MOCK_USER = Object.freeze({
+  id: '000000000000000000000001',
+  role: 'admin',
+});
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return next(
-        new AppError('Authentication failed', 401, 'Authorization token is missing')
-      );
-    }
+const resolveMockRole = (headerRole) => {
+  const normalizedRole = String(headerRole || '')
+    .trim()
+    .toLowerCase();
 
-    const token = authHeader.split(' ')[1];
-    const jwtSecret = process.env.JWT_SECRET;
-
-    if (!jwtSecret) {
-      return next(
-        new AppError(
-          'Internal server error',
-          500,
-          'JWT_SECRET is missing in environment configuration'
-        )
-      );
-    }
-
-    const decoded = jwt.verify(token, jwtSecret);
-
-    const user = await User.findById(decoded.userId).select('role status');
-
-    if (!user) {
-      return next(new AppError('Authentication failed', 401, 'User does not exist'));
-    }
-
-    if (user.status !== 'active') {
-      return next(new AppError('Authentication failed', 403, 'User account is inactive'));
-    }
-
-    req.user = {
-      id: user._id.toString(),
-      role: user.role,
-    };
-
-    return next();
-  } catch (_error) {
-    return next(new AppError('Authentication failed', 401, 'Invalid or expired token'));
+  if (ALLOWED_ROLES.includes(normalizedRole)) {
+    return normalizedRole;
   }
+
+  return DEFAULT_MOCK_USER.role;
+};
+
+const resolveMockUserId = (headerUserId) => {
+  const normalizedUserId = String(headerUserId || '').trim();
+  return normalizedUserId || DEFAULT_MOCK_USER.id;
+};
+
+const authenticate = (req, _res, next) => {
+  req.user = {
+    id: resolveMockUserId(req.headers['x-user-id']),
+    role: resolveMockRole(req.headers['x-user-role']),
+  };
+
+  return next();
 };
 
 const authorize = (allowedRoles = []) => {

@@ -4,7 +4,7 @@ const {
   getAllUsers,
   updateUserRole,
 } = require('../controllers/user.controller');
-const { authenticate, authorize } = require('../middleware/auth.middleware');
+const { authorize } = require('../middleware/auth.middleware');
 const validate = require('../middleware/validate.middleware');
 const {
   createUserSchema,
@@ -13,8 +13,6 @@ const {
 } = require('../validation/user.validation');
 
 const router = express.Router();
-
-router.use(authenticate);
 
 router.post('/', authorize(['admin']), validate(createUserSchema), createUser);
 router.get('/', authorize(['admin']), getAllUsers);

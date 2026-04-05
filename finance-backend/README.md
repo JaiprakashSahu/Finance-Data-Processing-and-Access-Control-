@@ -1,10 +1,10 @@
 # Finance Backend API
 
 ## Project Overview
-Production-ready backend for personal finance data processing with role-based access control, JWT authentication, input validation, and analytics endpoints for dashboard consumption.
+Backend for personal finance data processing with role-based access control (RBAC), input validation, records management, and dashboard analytics.
 
 Core features:
-- JWT authentication (`register`, `login`)
+- Mock authentication middleware for RBAC demonstrations
 - RBAC (`viewer`, `analyst`, `admin`)
 - Records CRUD with ownership checks
 - Records filtering and pagination
@@ -16,7 +16,6 @@ Core features:
 - Node.js
 - Express
 - MongoDB + Mongoose
-- JWT (`jsonwebtoken`)
 - Validation (`Joi`)
 - Security middleware (`helmet`, `cors`)
 
@@ -31,8 +30,6 @@ Create or update `.env`:
 ```env
 PORT=3000
 MONGO_URI=<your_mongodb_connection_string>
-JWT_SECRET=<long_random_secret>
-JWT_EXPIRES_IN=1d
 ```
 
 ### 3. Run in development
@@ -67,15 +64,27 @@ For failures:
 ```
 
 ## Authentication & Authorization
-### Auth Endpoints
-- `POST /auth/register`
-- `POST /auth/login`
+Authentication is simulated using mock middleware. Roles are injected into requests to demonstrate RBAC. This can be replaced with JWT-based authentication in production.
 
-### Token usage
-Send JWT in header:
-```http
-Authorization: Bearer <token>
+### Mock user injection
+All protected routes automatically receive `req.user` from middleware:
+
+```js
+req.user = {
+  id: '000000000000000000000001',
+  role: 'admin' // admin | analyst | viewer
+};
 ```
+
+### Dynamic role switching (recommended for testing)
+Override role and user id per request using headers:
+
+```http
+x-user-role: viewer
+x-user-id: 65f1c9f7605f5d6f9f9c0a11
+```
+
+If headers are not provided or invalid, middleware falls back to the default mock user.
 
 ### Roles
 - `viewer`
@@ -83,12 +92,6 @@ Authorization: Bearer <token>
 - `admin`
 
 ## API Endpoints
-### Auth
-- `POST /auth/register`
-  - Public signup (creates `viewer` by default)
-- `POST /auth/login`
-  - Returns `{ user, token }`
-
 ### Users
 - `POST /users` (admin)
   - Create user with role/status control
@@ -98,10 +101,9 @@ Authorization: Bearer <token>
   - Update user role
 
 ### Records
-- `POST /records` (authenticated)
+- `POST /records` (admin)
   - Create a record
-  - Non-admin users can only create their own records
-- `GET /records` (authenticated)
+- `GET /records` (admin, analyst, viewer)
   - List records with filters and pagination
   - Query params:
     - `page` (default: 1)
@@ -111,18 +113,25 @@ Authorization: Bearer <token>
     - `startDate` (ISO)
     - `endDate` (ISO)
     - `userId` (admin only)
-- `GET /records/:id` (authenticated)
+- `GET /records/:id` (admin, analyst, viewer)
   - Fetch single record with ownership guard
-- `PUT /records/:id` (authenticated)
+- `PUT /records/:id` (admin)
   - Update record with ownership guard
-- `DELETE /records/:id` (authenticated)
+- `DELETE /records/:id` (admin)
   - Delete record with ownership guard
 
 ### Dashboard
-- `GET /dashboard/summary` (authenticated)
-- `GET /dashboard/trends` (authenticated)
-- `GET /dashboard/category-wise` (authenticated)
+- `GET /dashboard/summary` (admin, analyst, viewer)
+- `GET /dashboard/trends` (admin, analyst, viewer)
+- `GET /dashboard/category-wise` (admin, analyst, viewer)
   - Optional query param: `userId` (admin only)
+
+## RBAC Behavior
+- Admin: full access to all routes and data.
+- Analyst: read-only access to records and dashboard data.
+- Viewer: limited read-only access to records and dashboard data.
+
+Ownership simulation still applies for non-admin users via `req.user.id`.
 
 ## Validation
 Joi-based request validation is applied to:
@@ -151,8 +160,7 @@ src/
 ```
 
 ## Assumptions Made
-- Public registration is limited to creating `viewer` users; elevated roles are admin-managed.
-- JWT is the sole authentication mechanism for protected routes.
+- Authentication is mocked for demonstration and can be replaced by real authentication later.
 - Role/ownership checks are enforced on all relevant record operations.
 - Pagination is mandatory for record listing and always returned with metadata.
 - Passwords are never returned in API payloads.

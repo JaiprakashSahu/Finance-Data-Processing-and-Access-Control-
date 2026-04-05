@@ -6,7 +6,7 @@ const {
   updateRecord,
   deleteRecord,
 } = require('../controllers/record.controller');
-const { authenticate, authorize } = require('../middleware/auth.middleware');
+const { authorize } = require('../middleware/auth.middleware');
 const validate = require('../middleware/validate.middleware');
 const {
   createRecordSchema,
@@ -17,9 +17,7 @@ const {
 
 const router = express.Router();
 
-router.use(authenticate);
-
-router.post('/', authorize(['admin', 'analyst', 'viewer']), validate(createRecordSchema), createRecord);
+router.post('/', authorize(['admin']), validate(createRecordSchema), createRecord);
 router.get('/', authorize(['admin', 'analyst', 'viewer']), validate(getRecordsQuerySchema, 'query'), getRecords);
 router.get(
   '/:id',
@@ -29,14 +27,14 @@ router.get(
 );
 router.put(
   '/:id',
-  authorize(['admin', 'analyst', 'viewer']),
+  authorize(['admin']),
   validate(recordIdParamsSchema, 'params'),
   validate(updateRecordSchema),
   updateRecord
 );
 router.delete(
   '/:id',
-  authorize(['admin', 'analyst', 'viewer']),
+  authorize(['admin']),
   validate(recordIdParamsSchema, 'params'),
   deleteRecord
 );
