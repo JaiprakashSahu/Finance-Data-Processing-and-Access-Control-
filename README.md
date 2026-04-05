@@ -165,6 +165,12 @@ VITE_API_URL=http://localhost:3000
 
 ---
 
+## 🏗️ Architecture
+
+Frontend (Vercel) -> Backend API (Render) -> MongoDB
+
+---
+
 ## 📡 API Documentation
 
 Postman Collection available in:

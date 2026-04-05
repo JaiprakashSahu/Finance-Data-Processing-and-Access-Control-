@@ -24,8 +24,7 @@ app.use('/api/dashboard', dashboardRoutes);
 
 app.get('/', (req, res) => {
   return res.status(200).json({
-    status: 'OK',
-    message: 'Finance API is running 🚀',
+    status: 'API Running',
   });
 });
 
