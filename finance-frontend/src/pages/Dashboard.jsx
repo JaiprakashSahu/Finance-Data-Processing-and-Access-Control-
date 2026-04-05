@@ -1,13 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import Sidebar from './Sidebar';
-import SummaryCards from './SummaryCards';
-import ChartSection from './ChartSection';
-import CategoryCards from './CategoryCards';
-import {
-  fetchDashboardCategoryWise,
-  fetchDashboardSummary,
-  fetchDashboardTrends,
-} from '../services/dashboardApi';
+import Sidebar from '../components/Sidebar';
+import SummaryCards from '../components/SummaryCards';
+import ChartSection from '../components/ChartSection';
+import CategoryCards from '../components/CategoryCards';
+import { api, unwrapData } from '../services/api';
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -30,11 +26,15 @@ export default function Dashboard() {
         setLoading(true);
         setError('');
 
-        const [summaryData, trendData, categoryData] = await Promise.all([
-          fetchDashboardSummary(),
-          fetchDashboardTrends(),
-          fetchDashboardCategoryWise(),
+        const [summaryRes, trendRes, categoryRes] = await Promise.all([
+          api.get('/dashboard/summary'),
+          api.get('/dashboard/trends'),
+          api.get('/dashboard/category-wise'),
         ]);
+
+        const summaryData = unwrapData(summaryRes) || {};
+        const trendData = unwrapData(trendRes) || [];
+        const categoryData = unwrapData(categoryRes) || {};
 
         setSummary({
           totalIncome: toNumber(summaryData.totalIncome),
@@ -43,7 +43,7 @@ export default function Dashboard() {
         });
 
         const safeTrendData = MONTHS.map((month) => {
-          const found = (trendData || []).find((item) => item.month === month) || {};
+          const found = trendData.find((item) => item.month === month) || {};
           return {
             month,
             income: toNumber(found.income),
@@ -52,7 +52,7 @@ export default function Dashboard() {
         });
 
         setTrends(safeTrendData);
-        setCategoryWise({ expense: categoryData?.expense || {} });
+        setCategoryWise({ expense: categoryData.expense || {} });
       } catch (requestError) {
         setError(requestError?.response?.data?.error || 'Unable to load dashboard data');
       } finally {
@@ -113,7 +113,10 @@ export default function Dashboard() {
           <SummaryCards summary={summary} selectedMonthData={selectedMonthData} />
 
           <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
-            <ChartSection trends={trends} />
+            <div className="min-w-0">
+              <ChartSection trends={trends} />
+            </div>
+
             <aside className="space-y-4">
               <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200/60">
                 <p className="text-lg font-semibold text-slate-900">Notification</p>

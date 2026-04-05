@@ -19,7 +19,7 @@ export default function ChartSection({ trends }) {
   const maxExpense = Math.max(...trends.map((point) => point.expense), 0);
 
   return (
-    <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/60">
+    <section className="min-w-0 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200/60">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-lg font-semibold text-slate-900">Income & Expenses</p>
@@ -37,8 +37,8 @@ export default function ChartSection({ trends }) {
         </div>
       </div>
 
-      <div className="h-72 w-full">
-        <ResponsiveContainer>
+      <div className="h-72 w-full min-w-0">
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <LineChart data={trends} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="4 4" stroke="#E2E8F0" />
             <XAxis dataKey="month" stroke="#64748B" fontSize={12} />

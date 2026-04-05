@@ -1,4 +1,10 @@
-const navItems = ['Dashboard', 'Income & Expenses', 'Assets & Goals'];
+import { NavLink } from 'react-router-dom';
+
+const navItems = [
+  { label: 'Dashboard', to: '/dashboard' },
+  { label: 'Income & Expenses', to: '/income-expenses' },
+  { label: 'Assets & Goals', to: '/assets-goals' },
+];
 
 const formatCompactCurrency = (value) => {
   return new Intl.NumberFormat('en-US', {
@@ -9,7 +15,7 @@ const formatCompactCurrency = (value) => {
   }).format(value || 0);
 };
 
-export default function Sidebar({ months, selectedMonth, onMonthChange, netWorth }) {
+export default function Sidebar({ months = [], selectedMonth, onMonthChange, netWorth = 0 }) {
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col justify-between rounded-r-[2.5rem] bg-slate-950 px-8 py-7 text-slate-200 shadow-2xl lg:flex">
       <div className="space-y-10">
@@ -23,15 +29,30 @@ export default function Sidebar({ months, selectedMonth, onMonthChange, netWorth
 
         <nav>
           <ul className="space-y-3">
-            {navItems.map((item, index) => (
-              <li
-                key={item}
-                className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium ${
-                  index === 0 ? 'bg-slate-800 text-cyan-300' : 'text-slate-400'
-                }`}
-              >
-                <span className="h-2 w-2 rounded-full bg-current" />
-                {item}
+            {navItems.map((item) => (
+              <li key={item.to}>
+                <NavLink
+                  to={item.to}
+                  className={({ isActive }) =>
+                    [
+                      'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-slate-800 text-cyan-300'
+                        : 'text-slate-400 hover:bg-slate-900 hover:text-slate-200',
+                    ].join(' ')
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <span
+                        className={`h-2 w-2 rounded-full ${
+                          isActive ? 'bg-cyan-300' : 'bg-slate-500'
+                        }`}
+                      />
+                      {item.label}
+                    </>
+                  )}
+                </NavLink>
               </li>
             ))}
           </ul>
@@ -39,25 +60,32 @@ export default function Sidebar({ months, selectedMonth, onMonthChange, netWorth
       </div>
 
       <div className="space-y-6">
-        <div>
-          <p className="mb-3 text-xs uppercase tracking-[0.2em] text-slate-500">Month Selector</p>
-          <div className="grid grid-cols-3 gap-2 text-sm">
-            {months.map((month) => (
-              <button
-                key={month}
-                type="button"
-                onClick={() => onMonthChange(month)}
-                className={`rounded-lg px-2 py-1.5 transition ${
-                  selectedMonth === month
-                    ? 'bg-amber-400 text-slate-900'
-                    : 'bg-slate-900 text-slate-300 hover:bg-slate-800'
-                }`}
-              >
-                {month}
-              </button>
-            ))}
+        {months.length > 0 && typeof onMonthChange === 'function' ? (
+          <div>
+            <p className="mb-3 text-xs uppercase tracking-[0.2em] text-slate-500">Month Selector</p>
+            <div className="grid grid-cols-3 gap-2 text-sm">
+              {months.map((month) => (
+                <button
+                  key={month}
+                  type="button"
+                  onClick={() => onMonthChange(month)}
+                  className={`rounded-lg px-2 py-1.5 transition ${
+                    selectedMonth === month
+                      ? 'bg-amber-400 text-slate-900'
+                      : 'bg-slate-900 text-slate-300 hover:bg-slate-800'
+                  }`}
+                >
+                  {month}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="rounded-2xl bg-slate-900 p-4 text-xs text-slate-400">
+            <p className="font-medium text-slate-200">Navigation</p>
+            <p className="mt-1">Switch between dashboard modules using the sidebar links.</p>
+          </div>
+        )}
 
         <div className="rounded-2xl bg-slate-900 p-4 text-xs text-slate-400">
           <p className="font-medium text-slate-200">Personal Finance Tracker</p>
