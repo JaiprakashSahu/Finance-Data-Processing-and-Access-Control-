@@ -19,6 +19,13 @@ app.use('/users', userRoutes);
 app.use('/records', recordRoutes);
 app.use('/dashboard', dashboardRoutes);
 
+app.get('/', (req, res) => {
+  return res.status(200).json({
+    status: 'OK',
+    message: 'Finance API is running 🚀',
+  });
+});
+
 app.get('/health', (req, res) => {
   return sendSuccess(res, 200, 'Server is running', {
     status: 'ok',
