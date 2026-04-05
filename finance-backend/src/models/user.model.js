@@ -37,6 +37,12 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    toJSON: {
+      transform(_doc, ret) {
+        delete ret.password;
+        return ret;
+      },
+    },
   }
 );
 
@@ -47,5 +53,9 @@ userSchema.pre('save', async function hashPassword() {
 
   this.password = await bcrypt.hash(this.password, 10);
 });
+
+userSchema.methods.comparePassword = async function comparePassword(plainPassword) {
+  return bcrypt.compare(plainPassword, this.password);
+};
 
 module.exports = mongoose.model('User', userSchema);

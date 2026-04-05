@@ -1,0 +1,9 @@
+const Joi = require('joi');
+
+const dashboardQuerySchema = Joi.object({
+  userId: Joi.string().hex().length(24).optional(),
+});
+
+module.exports = {
+  dashboardQuerySchema,
+};

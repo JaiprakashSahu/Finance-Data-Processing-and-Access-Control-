@@ -6,14 +6,39 @@ const {
   updateRecord,
   deleteRecord,
 } = require('../controllers/record.controller');
-const { authorize } = require('../middleware/auth.middleware');
+const { authenticate, authorize } = require('../middleware/auth.middleware');
+const validate = require('../middleware/validate.middleware');
+const {
+  createRecordSchema,
+  recordIdParamsSchema,
+  updateRecordSchema,
+  getRecordsQuerySchema,
+} = require('../validation/record.validation');
 
 const router = express.Router();
 
-router.post('/', authorize(['admin']), createRecord);
-router.get('/', authorize(['admin', 'analyst', 'viewer']), getRecords);
-router.get('/:id', authorize(['admin', 'analyst', 'viewer']), getRecordById);
-router.put('/:id', authorize(['admin']), updateRecord);
-router.delete('/:id', authorize(['admin']), deleteRecord);
+router.use(authenticate);
+
+router.post('/', authorize(['admin', 'analyst', 'viewer']), validate(createRecordSchema), createRecord);
+router.get('/', authorize(['admin', 'analyst', 'viewer']), validate(getRecordsQuerySchema, 'query'), getRecords);
+router.get(
+  '/:id',
+  authorize(['admin', 'analyst', 'viewer']),
+  validate(recordIdParamsSchema, 'params'),
+  getRecordById
+);
+router.put(
+  '/:id',
+  authorize(['admin', 'analyst', 'viewer']),
+  validate(recordIdParamsSchema, 'params'),
+  validate(updateRecordSchema),
+  updateRecord
+);
+router.delete(
+  '/:id',
+  authorize(['admin', 'analyst', 'viewer']),
+  validate(recordIdParamsSchema, 'params'),
+  deleteRecord
+);
 
 module.exports = router;

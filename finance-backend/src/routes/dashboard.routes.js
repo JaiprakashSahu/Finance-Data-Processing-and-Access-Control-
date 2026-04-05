@@ -4,12 +4,21 @@ const {
   getTrends,
   getCategoryWise,
 } = require('../controllers/dashboard.controller');
-const { authorize } = require('../middleware/auth.middleware');
+const { authenticate, authorize } = require('../middleware/auth.middleware');
+const validate = require('../middleware/validate.middleware');
+const { dashboardQuerySchema } = require('../validation/dashboard.validation');
 
 const router = express.Router();
 
-router.get('/summary', authorize(['admin', 'analyst', 'viewer']), getSummary);
-router.get('/trends', authorize(['admin', 'analyst', 'viewer']), getTrends);
-router.get('/category-wise', authorize(['admin', 'analyst', 'viewer']), getCategoryWise);
+router.use(authenticate);
+
+router.get('/summary', authorize(['admin', 'analyst', 'viewer']), validate(dashboardQuerySchema, 'query'), getSummary);
+router.get('/trends', authorize(['admin', 'analyst', 'viewer']), validate(dashboardQuerySchema, 'query'), getTrends);
+router.get(
+  '/category-wise',
+  authorize(['admin', 'analyst', 'viewer']),
+  validate(dashboardQuerySchema, 'query'),
+  getCategoryWise
+);
 
 module.exports = router;
