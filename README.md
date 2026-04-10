@@ -231,3 +231,4 @@ MIT License
 **Built with ❤️ using MERN Stack & modern web technologies**
 
 </div>
+OmZor
